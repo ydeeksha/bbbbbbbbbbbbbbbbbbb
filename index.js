@@ -1,54 +1,40 @@
-prediction_1 = ""
+lipsX=0;
+lips=0;
 
-prediction_2 = ""
-
-Webcam.set({
-  width:350,
-  height:300,
-  image_format: 'png',
-  png_quality:90
-});
-
-camera = document.getElementById("camera");
-
-Webcam.attach('camera#');
-
-function take_snapshot() {
-Webcam.snap(function(data_uri) {
-document.getElementById("result").innerHTML = '<img id="captured_image" src="'+data_uri+'"/>';
-});
+function preload() {
+  lips = loadImage('https://i.postimg.cc/PxFvYgkv/l1.png');
 }
 
-console.log('ml5 version:',ml5.version);
-classifier = ml5.imageClassifier('https://teachablemachine.withgoogle.com/models/5mxzZHkpx/model.json',modelLoaded);
+function setup() {
+  canvas = createCanvas(300, 300);
+  canvas.center();
+  video = createCapture(VIDEO);
+  video.size(300, 300);
+  video.hide();
 
-function modelLoaded()
+  poseNet = ml5.poseNet(video, modelLoaded);
+  poseNet.on('pose', gotPoses);
+}
+
+function modelLoaded() {
+  console.log('PoseNet Is Initialized');
+}
+
+function gotPoses(results)
 {
-   console.log('Model Loaded!');
-
+  if(results.length > 0)
+  {
+    console.log(results);
+    lipsX = results[0].pose.nose.x-25;
+    lipsY = results[0].pose.nose.y+15;
+  }
 }
 
-function speak()
-{
-var synth = window.speechSynthesis;
-speak_data_1=" The first prediction is " + prediction_1;
-speak_data_2=" the second prediction is " + prediction_2;
-var utterThis = new SpeechSynthesisUtterance( speak_data_1+speak_data_2);
-synth.speak(utterThis);
+function draw() {
+  image(video, 0, 0, 300, 300);
+  image(lips,lipsX, lipsY, 50, 20);
 }
 
-function check()
-{
-    img=document.getElementById('captured_image');
-    classifier.classify('img, gotResult');
-}
-
-function gotResult(error , results)
-{
-if (error) {
-console.error(error);
-}
-else{
-    
-}
+function take_snapshot(){    
+  save('myLipstickimage.png');
 }
